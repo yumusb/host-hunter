@@ -70,21 +70,45 @@ func HostVerify(hostip HostIP) {
 	var target string
 	var titleinf string=""
 
+// 	tr := &http.Transport{
+// 		Dial: (&net.Dialer{
+
+// 			//解决连接过多出现err:too many open file.
+// 			// https://colobu.com/2016/07/01/the-complete-guide-to-golang-net-http-timeouts/
+// 			// http://craigwickesser.com/2015/01/golang-http-to-many-open-files/
+// 			Timeout:   time.Duration(timeout) * time.Second,
+// 			Deadline:  time.Now().Add(time.Duration(timeout) * time.Second),
+// 			KeepAlive: time.Duration(timeout) * time.Second,
+// 		}).Dial,
+// 		TLSHandshakeTimeout:time.Duration(timeout)* time.Second,
+// 		//忽略证书校验
+// 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+// 	}
+
+	dialer := &net.Dialer{
+		Timeout:   time.Duration(timeout) * time.Second,
+                Deadline:  time.Now().Add(time.Duration(timeout) * time.Second),
+                KeepAlive: time.Duration(timeout) * time.Second,
+	}
+
 	tr := &http.Transport{
-		Dial: (&net.Dialer{
+		//Dial: (&net.Dialer{
 
 			//解决连接过多出现err:too many open file.
 			// https://colobu.com/2016/07/01/the-complete-guide-to-golang-net-http-timeouts/
 			// http://craigwickesser.com/2015/01/golang-http-to-many-open-files/
-			Timeout:   time.Duration(timeout) * time.Second,
-			Deadline:  time.Now().Add(time.Duration(timeout) * time.Second),
-			KeepAlive: time.Duration(timeout) * time.Second,
-		}).Dial,
+		///	Timeout:   time.Duration(timeout) * time.Second,
+		//	Deadline:  time.Now().Add(time.Duration(timeout) * time.Second),
+		//	KeepAlive: time.Duration(timeout) * time.Second,
+		//}).Dial,
+		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			addr = hostip.Address+addr[strings.LastIndex(addr, ":"):]
+			return dialer.DialContext(ctx, network, addr)
+		},
 		TLSHandshakeTimeout:time.Duration(timeout)* time.Second,
 		//忽略证书校验
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
-
 	//设置代理
 	if proxy!=""{
 
@@ -105,12 +129,11 @@ func HostVerify(hostip HostIP) {
 	}
 	if hostip.Port==443{
 		log.Printf("%s,%d\n",hostip.Schema,port)
-		target=fmt.Sprintf("https://%s",hostip.Address)
+		target=fmt.Sprintf("https://%s",hostip.Host)
 	}else if hostip.Port==80{
 		log.Printf("%s,%d",hostip.Schema,port)
-		target=fmt.Sprintf("http://%s",hostip.Address)
+		target=fmt.Sprintf("http://%s",hostip.Host)
 	}else{
-
 		target=fmt.Sprintf("%s://%s:%d",hostip.Schema,hostip.Address,hostip.Port)
 	}
 
