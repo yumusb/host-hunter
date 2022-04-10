@@ -21,7 +21,7 @@ import (
 )
 
 var(
-	schemas[2] string=[2] string{"https"}
+	schemas =[]string{"https"}
 	hL string
 	iL string
 	ip string
