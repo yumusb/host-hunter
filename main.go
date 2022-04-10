@@ -17,10 +17,11 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"context"
 )
 
 var(
-	schemas[2] string=[2] string{"http","https"}
+	schemas[2] string=[2] string{"https"}
 	hL string
 	iL string
 	ip string
@@ -33,7 +34,7 @@ var(
 	tasklist []HostIP
 	timeout int
 	port string
-	ports =[]int{80,443} //默认端口访问
+	ports =[]int{443} //默认端口访问
 	redirect bool
 	flog *os.File
 	outfile string
